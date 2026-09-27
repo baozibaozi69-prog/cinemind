@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#09090b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CineMind · 我的电影地图</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#09090b;--card:#151518;--card2:#1c1c21;--text:#f5f5f5;--muted:#92929b;--line:#29292f;--accent:#f1c75b;--danger:#ef6b73}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}.app{max-width:760px;margin:auto;padding:env(safe-area-inset-top) 16px calc(88px + env(safe-area-inset-bottom))}
+header{padding:28px 4px 18px;display:flex;justify-content:space-between;align-items:end}h1{font-size:22px;margin:0;font-weight:750;letter-spacing:-.5px}.eyebrow{font-size:11px;color:var(--muted);letter-spacing:2px;margin-bottom:7px}.version{font-size:11px;color:var(--muted)}
+.hero{padding:26px 4px 24px}.hero h2{font-size:32px;line-height:1.16;margin:0 0 12px;letter-spacing:-1.3px}.hero p{color:var(--muted);line-height:1.7;margin:0;font-size:14px}
+.nav{display:flex;gap:7px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:18px}.nav button{background:none;border:0;color:var(--muted);padding:8px 13px;border-radius:20px}.nav button.active{background:var(--card2);color:var(--text)}
+.grid{display:grid;gap:12px}.movie{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:17px;position:relative}.movieTop{display:flex;gap:14px}.poster{width:68px;height:94px;border-radius:10px;background:linear-gradient(145deg,#2b2b31,#101013);display:flex;align-items:end;padding:8px;font-weight:700;font-size:12px;flex:none;overflow:hidden}.poster span{background:#000b;padding:4px 5px;border-radius:5px}.movie h3{margin:2px 0 5px;font-size:17px}.meta{font-size:12px;color:var(--muted)}.match{color:var(--accent);font-size:12px;margin-top:9px}.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}.tag{font-size:11px;color:#bdbdc5;background:#202025;border-radius:8px;padding:5px 7px}.actions{display:flex;gap:8px;margin-top:14px}.btn{border:1px solid var(--line);background:#202025;color:var(--text);border-radius:10px;padding:9px 12px}.btn.primary{background:var(--text);color:#09090b;border-color:var(--text);font-weight:650}
+.sectionTitle{display:flex;justify-content:space-between;align-items:center;margin:26px 2px 12px}.sectionTitle h3{margin:0;font-size:16px}.sectionTitle span{font-size:12px;color:var(--muted)}
+.profile{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}.barRow{display:grid;grid-template-columns:92px 1fr 38px;gap:10px;align-items:center;margin:12px 0;font-size:12px}.bar{height:6px;background:#29292e;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:9px}.empty{color:var(--muted);padding:30px 5px;text-align:center;line-height:1.7}
+.modal{position:fixed;inset:0;background:#000b;display:none;align-items:end;z-index:20}.modal.show{display:flex}.sheet{width:100%;max-width:760px;margin:auto;background:#151518;border:1px solid var(--line);border-radius:24px 24px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}.sheetHead{display:flex;justify-content:space-between;align-items:center}.close{background:none;border:0;color:var(--muted);font-size:24px}.score{font-size:40px;font-weight:800;margin:18px 0 4px}.range{width:100%;accent-color:var(--accent)}.dim{margin-top:18px}.dimHead{display:flex;justify-content:space-between;font-size:13px;margin-bottom:7px}.dim input{width:100%;accent-color:var(--accent)}textarea{width:100%;min-height:100px;background:#0f0f12;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;resize:vertical;margin-top:7px;outline:none}.footerBtns{display:flex;gap:9px;margin-top:18px}.footerBtns .btn{flex:1}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#f5f5f5;color:#09090b;padding:10px 14px;border-radius:12px;font-size:12px;display:none;z-index:40}
+@media(min-width:600px){.grid.two{grid-template-columns:1fr 1fr}.sheet{border-radius:24px;margin-bottom:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div><div class="eyebrow">PERSONAL MOVIE MAP</div><h1>VAN · CINEMIND</h1></div><div class="version">V2.0 / PERSONAL</div></header>
+
+<section class="hero">
+<h2>不是片单。<br>是一张正在生长的审美地图。</h2>
+<p>你看过什么、喜欢什么、为什么喜欢——都会慢慢变成下一次推荐的依据。</p>
+</section>
+
+<nav class="nav">
+<button class="active" data-tab="home">为你推荐</button>
+<button data-tab="explore">探索</button>
+<button data-tab="rated">已评分</button>
+</nav>
+
+<main id="content"></main>
+</div>
+
+<div class="modal" id="modal">
+<div class="sheet">
+<div class="sheetHead"><strong id="modalTitle">评分</strong><button class="close" onclick="closeModal()">×</button></div>
+<div class="score"><span id="scoreVal">8</span><small style="font-size:15px;color:#92929b"> / 10</small></div>
+<input id="overall" class="range" type="range" min="1" max="10" value="8" oninput="scoreVal.textContent=this.value">
+<div id="dims"></div>
+<label style="display:block;margin-top:20px;font-size:13px">为什么？<textarea id="note" placeholder="可以写一句，也可以写很多。你真正喜欢/不喜欢的原因，对下一次推荐很重要。"></textarea></label>
+<div class="footerBtns"><button class="btn" onclick="closeModal()">取消</button><button class="btn primary" onclick="saveRating()">保存评分</button></div>
+</div>
+</div>
+<div id="toast"></div>
+
+<script>
+const dims=[
+["cinema","电影感 / 摄影"],["character","人物"],["story","剧情"],["visual","视觉语言"],
+["humor","黑色幽默"],["emotion","情绪"],["thought","思考余味"]
+];
+const seed=[
+["三块广告牌","2017","电影",99,[96,100,97,91,98,96,95]],
+["荒蛮故事","2014","电影",98,[91,95,96,88,100,92,94]],
+["杀人回忆","2003","电影",99,[99,98,98,95,76,97,100]],
+["新世界","2013","电影",97,[96,97,95,94,65,93,91]],
+["寄生虫","2019","电影",98,[99,97,98,99,94,94,99]],
+["疯狂的麦克斯：狂暴之路","2015","电影",94,[100,83,80,100,62,82,72]],
+["爱尔兰人","2019","电影",95,[98,100,93,95,72,98,100]],
+["银翼杀手2049","2017","电影",96,[100,90,86,100,35,91,98]],
+["正义骑士","2020","电影",94,[91,96,94,87,96,96,91]],
+["七个变态","2012","电影",93,[88,95,91,84,100,85,87]],
+["走到尽头","2014","电影",92,[93,91,96,92,84,83,76]],
+["赴汤蹈火","2016","电影",91,[97,97,92,96,48,96,95]],
+["杀手没有假期","2008","电影",91,[90,96,92,91,98,96,94]],
+["夜行动物","2016","电影",89,[98,91,87,99,25,93,94]],
+["菜单","2022","电影",88,[90,81,91,94,92,78,88]],
+["老无所依","2007","电影",90,[99,94,94,97,66,88,99]],
+["阅后即焚","2008","电影",88,[91,95,88,87,99,78,91]],
+["斯大林之死","2017","电影",87,[88,97,92,80,100,77,95]],
+["真探 S1","2014","剧集",91,[98,99,93,98,45,96,99]],
+["风骚律师","2015","剧集",89,[96,100,96,94,83,98,99]]
+];
+const recommendations=[
+["黄海","2010","电影","韩国犯罪、人物困境、暴力失控"],
+["燃烧","2018","电影","暧昧、人物心理、现代影像"],
+["追击者","2008","电影","韩国犯罪、压迫感、人物驱动"],
+["恶人传","2019","电影","韩式犯罪、黑色幽默、动作"],
+["药商","2020","电影","犯罪、欲望、荒诞"],
+["老手","2015","电影","韩国犯罪、节奏、角色"],
+["In Bruges","2008","电影","黑色幽默、罪疚、悲剧"],
+["The Guard","2011","电影","黑色幽默、人物关系、犯罪"],
+["No Country for Old Men","2007","电影","摄影、道德困境、余味"],
+["Burn After Reading","2008","电影","荒诞、人物愚蠢、黑色幽默"]
+];
+
+let ratings=JSON.parse(localStorage.getItem("cinemind-ratings")||"{}");
+let current=null,tab="home";
+
+function toast(s){const t=document.getElementById("toast");t.textContent=s;t.style.display="block";setTimeout(()=>t.style.display="none",1600)}
+function movieCard(m,canRate=true){
+ const [title,year,type,match,ds]=m;
+ const rated=ratings[title];
+ return `<article class="movie">
+  <div class="movieTop"><div class="poster"><span>${title.slice(0,7)}</span></div><div style="min-width:0">
+  <h3>${title}</h3><div class="meta">${year} · ${type}</div><div class="match">与你的审美匹配度 ${match}%</div></div></div>
+  <div class="tags">${ds.slice(0,4).map((v,i)=>`<span class="tag">${dims[i][1]} ${v}</span>`).join("")}</div>
+  <div class="actions">${canRate?`<button class="btn primary" onclick="openRating('${escapeQ(title)}')">${rated?"修改评分":"看完评分"}</button>`:""}${rated?`<span class="tag" style="margin-left:auto;align-self:center">你的评分 ${rated.overall}/10</span>`:""}</div>
+ </article>`
+}
+function escapeQ(s){return s.replaceAll("'","&#39;")}
+function render(){
+ const c=document.getElementById("content");
+ if(tab==="home"){
+   c.innerHTML=`<div class="sectionTitle"><h3>今晚看什么？</h3><span>根据当前审美画像</span></div>
+   <div class="grid">${recommendations.slice(0,3).map((x,i)=>movieCard([x[0],x[1],x[2],99-i,[96-i,95,94,96,90,94,95]])).join("")}</div>
+   <div class="sectionTitle"><h3>你的审美画像</h3><span>${Object.keys(ratings).length} 部真实评分</span></div>${profileHTML()}
+   <div class="sectionTitle"><h3>已经为你准备的片单</h3><span>可继续探索</span></div>
+   <div class="grid two">${seed.slice(0,8).map(movieCard).join("")}</div>`;
+ }else if(tab==="explore"){
+   c.innerHTML=`<div class="sectionTitle"><h3>探索</h3><span>${seed.length+recommendations.length} 部</span></div>
+   <div class="grid two">${seed.concat(recommendations.map((x,i)=>[x[0],x[1],x[2],86+i%10,[92,94,91,94,95,90,93]])).map(movieCard).join("")}</div>`;
+ }else{
+   const rs=Object.entries(ratings);
+   c.innerHTML=rs.length?`<div class="sectionTitle"><h3>已评分</h3><span>${rs.length} 部</span></div>
+   <div class="grid">${rs.map(([title,r])=>movieCard([title,r.year||"",r.type||"电影",r.overall*10,r.dims])).join("")}</div>
+   <div class="sectionTitle"><h3>数据</h3></div><div class="movie"><button class="btn primary" onclick="exportData()">导出我的 CineMind 数据</button> <button class="btn" onclick="resetData()">清空本机评分</button></div>`
+   :`<div class="empty">还没有评分。<br>先看一部，再告诉 CineMind 你为什么喜欢它。</div>`;
+ }
+}
+function profileValues(){
+ const rs=Object.values(ratings);
+ if(!rs.length)return dims.map(x=>[x[1],0]);
+ return dims.map((d,i)=>[d[1],Math.round(rs.reduce((a,r)=>a+(r.dims?.[i]||0),0)/rs.length)]);
+}
+function profileHTML(){
+ return `<div class="profile">${profileValues().map(([n,v])=>`<div class="barRow"><span>${n}</span><div class="bar"><i style="width:${v}%"></i></div><span>${v}</span></div>`).join("")}
+ <div style="margin-top:18px;font-size:12px;color:#92929b;line-height:1.7">画像会随着你的真实评分变化。文字反馈暂时保存在本机，下一阶段可以接入 AI，让推荐开始理解你的“为什么”。</div></div>`;
+}
+function openRating(title){
+ current=title;
+ document.getElementById("modalTitle").textContent=title;
+ const old=ratings[title];
+ document.getElementById("overall").value=old?.overall||8;
+ document.getElementById("scoreVal").textContent=old?.overall||8;
+ document.getElementById("note").value=old?.note||"";
+ document.getElementById("dims").innerHTML=dims.map((d,i)=>`<div class="dim"><div class="dimHead"><span>${d[1]}</span><span id="dv${i}">${old?.dims?.[i]||90}</span></div><input type="range" min="0" max="100" value="${old?.dims?.[i]||90}" oninput="document.getElementById('dv${i}').textContent=this.value"></div>`).join("");
+ document.getElementById("modal").classList.add("show");
+}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+function saveRating(){
+ const inputs=[...document.querySelectorAll("#dims input")];
+ ratings[current]={overall:+document.getElementById("overall").value,dims:inputs.map(x=>+x.value),note:document.getElementById("note").value,year:(seed.find(x=>x[0]===current)||[])[1]||"",type:(seed.find(x=>x[0]===current)||[])[2]||"电影",updated:new Date().toISOString()};
+ localStorage.setItem("cinemind-ratings",JSON.stringify(ratings));
+ closeModal();render();toast("已记录。你的审美地图更新了。");
+}
+function exportData(){
+ const data={app:"CineMind",version:"2.0",exportedAt:new Date().toISOString(),ratings,taste:profileValues()};
+ const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="cinemind-profile.json";a.click();URL.revokeObjectURL(a.href);
+}
+function resetData(){if(confirm("确定清空本机所有评分吗？")){ratings={};localStorage.removeItem("cinemind-ratings");render();}}
+document.querySelectorAll(".nav button").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));b.classList.add("active");tab=b.dataset.tab;render()});
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+render();
+</script>
+</body>
+</html>
